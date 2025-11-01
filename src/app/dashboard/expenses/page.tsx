@@ -47,7 +47,7 @@ export default function ExpensesPage() {
 
   if (status === "loading" || isLoading) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="p-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">Loading...</div>
         </div>
@@ -56,13 +56,13 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* <div className="flex flex-col space-y-2">
+    <div className="p-8 space-y-6">
+      <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Expense Tracker</h1>
         <p className="text-muted-foreground">
           Track and manage your family expenses efficiently.
         </p>
-      </div> */}
+      </div>
 
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

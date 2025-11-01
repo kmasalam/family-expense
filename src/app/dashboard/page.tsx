@@ -156,13 +156,13 @@ export default function Dashboard() {
           <CardContent className="space-y-4">
             <div className="flex space-x-4">
               <Button asChild className="flex-1">
-                <Link href="/expenses">
+                <Link href="/dashboard/expenses">
                   <TrendingDown className="h-4 w-4 mr-2" />
                   Add Expense
                 </Link>
               </Button>
               <Button asChild className="flex-1" variant="outline">
-                <Link href="/income">
+                <Link href="/dashboard/income">
                   <TrendingUp className="h-4 w-4 mr-2" />
                   Add Income
                 </Link>

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
+import { IncomeDialog } from "@/components/income/income-dialog";
 import {
   Card,
   CardContent,
@@ -14,7 +15,6 @@ import {
 } from "@/components/ui/card";
 import { getIncomeColumns } from "@/components/income/income-columns";
 import { Income } from "@/lib/db/supabase-client";
-import { IncomeDialog } from "@/components/income/income-dialog";
 
 export default function IncomePage() {
   const { data: session, status } = useSession();
@@ -57,12 +57,12 @@ export default function IncomePage() {
 
   return (
     <div className="p-8 space-y-6">
-      {/* <div className="flex flex-col space-y-2">
+      <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Income Tracker</h1>
         <p className="text-muted-foreground">
           Track and manage your family income efficiently.
         </p>
-      </div> */}
+      </div>
 
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
