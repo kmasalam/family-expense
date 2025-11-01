@@ -57,12 +57,12 @@ export default function IncomePage() {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex flex-col space-y-2">
+      {/* <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Income Tracker</h1>
         <p className="text-muted-foreground">
           Track and manage your family income efficiently.
         </p>
-      </div>
+      </div> */}
 
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

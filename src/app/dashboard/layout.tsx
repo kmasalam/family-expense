@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
+import { useState } from "react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -28,6 +30,7 @@ export default function DashboardLayout({
 }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
 
   if (status === "loading") {
     return (
@@ -42,7 +45,7 @@ export default function DashboardLayout({
   }
 
   const handleSignOut = async () => {
-    await signOut(); // Removed redirectTo parameter
+    await signOut();
   };
 
   return (
@@ -100,7 +103,7 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleSignOut}
+                onClick={() => setIsSignOutDialogOpen(true)}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <LogOut className="h-4 w-4" />
@@ -114,6 +117,17 @@ export default function DashboardLayout({
       <div className="pl-64">
         <main className="min-h-screen">{children}</main>
       </div>
+
+      {/* Sign Out Confirmation Dialog */}
+      <ConfirmDialog
+        open={isSignOutDialogOpen}
+        onOpenChange={setIsSignOutDialogOpen}
+        onConfirm={handleSignOut}
+        title="Sign Out"
+        description="Are you sure you want to sign out?"
+        confirmText="Sign Out"
+        variant="default"
+      />
     </div>
   );
 }

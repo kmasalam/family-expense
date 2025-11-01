@@ -11,10 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
-import { toast } from "sonner";
-import { Income } from "@/lib/db/supabase-client";
 import { IncomeDialog } from "./income-dialog";
 import { ViewIncome } from "./view-income";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
+import { Income } from "@/lib/db/supabase-client";
 
 interface IncomeActionsProps {
   income: Income;
@@ -24,6 +25,7 @@ interface IncomeActionsProps {
 export function IncomeActions({ income, onIncomeUpdated }: IncomeActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   const handleDelete = async () => {
@@ -42,6 +44,9 @@ export function IncomeActions({ income, onIncomeUpdated }: IncomeActionsProps) {
         description: "Income deleted successfully",
       });
 
+      // Close the confirmation dialog
+      setIsDeleteDialogOpen(false);
+
       // Refresh the income list
       if (onIncomeUpdated) {
         onIncomeUpdated();
@@ -57,6 +62,10 @@ export function IncomeActions({ income, onIncomeUpdated }: IncomeActionsProps) {
     } finally {
       setIsDeleteLoading(false);
     }
+  };
+
+  const openDeleteDialog = () => {
+    setIsDeleteDialogOpen(true);
   };
 
   return (
@@ -79,11 +88,7 @@ export function IncomeActions({ income, onIncomeUpdated }: IncomeActionsProps) {
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleDelete}
-            disabled={isDeleteLoading}
-            className="text-red-600"
-          >
+          <DropdownMenuItem onClick={openDeleteDialog} className="text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
@@ -102,6 +107,17 @@ export function IncomeActions({ income, onIncomeUpdated }: IncomeActionsProps) {
         open={isViewOpen}
         onOpenChange={setIsViewOpen}
         income={income}
+      />
+
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Delete Income"
+        description="Are you sure you want to delete this income? This action cannot be undone."
+        confirmText="Delete Income"
+        isLoading={isDeleteLoading}
+        variant="destructive"
       />
     </>
   );

@@ -13,6 +13,7 @@ import {
 import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
 import { ExpenseDialog } from "./expense-dialog";
 import { ViewExpense } from "./view-expense";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { Expense } from "@/lib/db/supabase-client";
 
@@ -27,6 +28,7 @@ export function ExpenseActions({
 }: ExpenseActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   const handleDelete = async () => {
@@ -45,6 +47,9 @@ export function ExpenseActions({
         description: "Expense deleted successfully",
       });
 
+      // Close the confirmation dialog
+      setIsDeleteDialogOpen(false);
+
       // Refresh the expenses list
       if (onExpenseUpdated) {
         onExpenseUpdated();
@@ -60,6 +65,10 @@ export function ExpenseActions({
     } finally {
       setIsDeleteLoading(false);
     }
+  };
+
+  const openDeleteDialog = () => {
+    setIsDeleteDialogOpen(true);
   };
 
   return (
@@ -82,11 +91,7 @@ export function ExpenseActions({
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleDelete}
-            disabled={isDeleteLoading}
-            className="text-red-600"
-          >
+          <DropdownMenuItem onClick={openDeleteDialog} className="text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
@@ -105,6 +110,17 @@ export function ExpenseActions({
         open={isViewOpen}
         onOpenChange={setIsViewOpen}
         expense={expense}
+      />
+
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Delete Expense"
+        description="Are you sure you want to delete this expense? This action cannot be undone."
+        confirmText="Delete Expense"
+        isLoading={isDeleteLoading}
+        variant="destructive"
       />
     </>
   );
