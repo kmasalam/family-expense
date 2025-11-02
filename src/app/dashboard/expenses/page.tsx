@@ -92,6 +92,9 @@ export default function ExpensesPage() {
               columns={getExpenseColumns(fetchExpenses)}
               data={expenses}
               searchKey="type"
+              showTotal={true}
+              totalLabel="Total Expenses"
+              amountAccessorKey="amount"
             />
           </CardContent>
         </Card>

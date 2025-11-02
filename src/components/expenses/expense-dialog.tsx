@@ -29,22 +29,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { TypeManagementDialog } from "@/components/type-management-dialog";
+import { useCustomTypes } from "@/hooks/use-custom-types";
 import { Expense } from "@/lib/db/supabase-client";
-
-const expenseTypes = [
-  "Food",
-  "Transportation",
-  "Entertainment",
-  "Utilities",
-  "Healthcare",
-  "Shopping",
-  "Education",
-  "Other",
-];
 
 interface ExpenseDialogProps {
   open: boolean;
@@ -64,6 +55,14 @@ export function ExpenseDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [customType, setCustomType] = useState("");
   const [showCustomType, setShowCustomType] = useState(false);
+  const [isTypeManagementOpen, setIsTypeManagementOpen] = useState(false);
+
+  // Use the custom types hook with forceRefresh
+  const {
+    types: managedTypes,
+    isLoading: typesLoading,
+    forceRefresh,
+  } = useCustomTypes("expense");
 
   const form = useForm<ExpenseInput>({
     resolver: zodResolver(expenseSchema),
@@ -75,17 +74,28 @@ export function ExpenseDialog({
     },
   });
 
-  // Reset custom type state when dialog opens/closes
+  // Reset custom type state when dialog opens/closes or when expense changes
   useEffect(() => {
-    if (open && expense?.type && !expenseTypes.includes(expense.type)) {
-      setCustomType(expense.type);
-      setShowCustomType(true);
-      form.setValue("type", expense.type);
-    } else if (!open) {
+    if (open) {
+      if (expense?.type) {
+        // Check if the expense type exists in managed types
+        if (managedTypes.includes(expense.type)) {
+          form.setValue("type", expense.type);
+          setShowCustomType(false);
+          setCustomType("");
+        } else {
+          // It's a custom type not in the list
+          setCustomType(expense.type);
+          setShowCustomType(true);
+          form.setValue("type", expense.type);
+        }
+      }
+    } else {
+      // Reset when dialog closes
       setCustomType("");
       setShowCustomType(false);
     }
-  }, [open, expense, form]);
+  }, [open, expense, form, managedTypes]);
 
   async function onSubmit(data: ExpenseInput) {
     setIsLoading(true);
@@ -169,6 +179,11 @@ export function ExpenseDialog({
     }
   };
 
+  const handleTypesChange = () => {
+    // Force refresh the types when they change in the management dialog
+    forceRefresh();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -191,7 +206,12 @@ export function ExpenseDialog({
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
                   <FormControl>
-                    <Input placeholder="0.00" {...field} />
+                    <Input
+                      placeholder="0.00"
+                      {...field}
+                      type="number"
+                      step="0.01"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -199,7 +219,19 @@ export function ExpenseDialog({
             />
 
             <div className="space-y-2">
-              <FormLabel>Type *</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Type *</FormLabel>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsTypeManagementOpen(true)}
+                  className="text-xs"
+                >
+                  <Settings className="h-3 w-3 mr-1" />
+                  Manage Types
+                </Button>
+              </div>
               {!showCustomType ? (
                 <FormField
                   control={form.control}
@@ -211,9 +243,10 @@ export function ExpenseDialog({
                           className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           value={field.value}
                           onChange={(e) => handleTypeChange(e.target.value)}
+                          disabled={typesLoading}
                         >
                           <option value="">Select a type</option>
-                          {expenseTypes.map((type) => (
+                          {managedTypes.map((type) => (
                             <option key={type} value={type}>
                               {type}
                             </option>
@@ -323,6 +356,14 @@ export function ExpenseDialog({
           </form>
         </Form>
       </DialogContent>
+
+      {/* Type Management Dialog */}
+      <TypeManagementDialog
+        open={isTypeManagementOpen}
+        onOpenChange={setIsTypeManagementOpen}
+        type="expense"
+        onTypesChange={handleTypesChange}
+      />
     </Dialog>
   );
 }

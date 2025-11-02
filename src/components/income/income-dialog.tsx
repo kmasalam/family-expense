@@ -29,22 +29,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { TypeManagementDialog } from "@/components/type-management-dialog";
+import { useCustomTypes } from "@/hooks/use-custom-types";
 import { Income } from "@/lib/db/supabase-client";
-
-const incomeTypes = [
-  "Salary",
-  "Freelance",
-  "Business",
-  "Investment",
-  "Rental",
-  "Bonus",
-  "Gift",
-  "Other",
-];
 
 interface IncomeDialogProps {
   open: boolean;
@@ -64,6 +55,14 @@ export function IncomeDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [customType, setCustomType] = useState("");
   const [showCustomType, setShowCustomType] = useState(false);
+  const [isTypeManagementOpen, setIsTypeManagementOpen] = useState(false);
+
+  // Use the custom types hook with forceRefresh
+  const {
+    types: managedTypes,
+    isLoading: typesLoading,
+    forceRefresh,
+  } = useCustomTypes("income");
 
   const form = useForm<IncomeInput>({
     resolver: zodResolver(incomeSchema),
@@ -75,17 +74,28 @@ export function IncomeDialog({
     },
   });
 
-  // Reset custom type state when dialog opens/closes
+  // Reset custom type state when dialog opens/closes or when income changes
   useEffect(() => {
-    if (open && income?.type && !incomeTypes.includes(income.type)) {
-      setCustomType(income.type);
-      setShowCustomType(true);
-      form.setValue("type", income.type);
-    } else if (!open) {
+    if (open) {
+      if (income?.type) {
+        // Check if the income type exists in managed types
+        if (managedTypes.includes(income.type)) {
+          form.setValue("type", income.type);
+          setShowCustomType(false);
+          setCustomType("");
+        } else {
+          // It's a custom type not in the list
+          setCustomType(income.type);
+          setShowCustomType(true);
+          form.setValue("type", income.type);
+        }
+      }
+    } else {
+      // Reset when dialog closes
       setCustomType("");
       setShowCustomType(false);
     }
-  }, [open, income, form]);
+  }, [open, income, form, managedTypes]);
 
   async function onSubmit(data: IncomeInput) {
     setIsLoading(true);
@@ -167,6 +177,11 @@ export function IncomeDialog({
     }
   };
 
+  const handleTypesChange = () => {
+    // Force refresh the types when they change in the management dialog
+    forceRefresh();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -189,7 +204,12 @@ export function IncomeDialog({
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
                   <FormControl>
-                    <Input placeholder="0.00" {...field} />
+                    <Input
+                      placeholder="0.00"
+                      {...field}
+                      type="number"
+                      step="0.01"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -197,7 +217,19 @@ export function IncomeDialog({
             />
 
             <div className="space-y-2">
-              <FormLabel>Type *</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Type *</FormLabel>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsTypeManagementOpen(true)}
+                  className="text-xs"
+                >
+                  <Settings className="h-3 w-3 mr-1" />
+                  Manage Types
+                </Button>
+              </div>
               {!showCustomType ? (
                 <FormField
                   control={form.control}
@@ -209,9 +241,10 @@ export function IncomeDialog({
                           className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           value={field.value}
                           onChange={(e) => handleTypeChange(e.target.value)}
+                          disabled={typesLoading}
                         >
                           <option value="">Select a type</option>
-                          {incomeTypes.map((type) => (
+                          {managedTypes.map((type) => (
                             <option key={type} value={type}>
                               {type}
                             </option>
@@ -321,6 +354,14 @@ export function IncomeDialog({
           </form>
         </Form>
       </DialogContent>
+
+      {/* Type Management Dialog */}
+      <TypeManagementDialog
+        open={isTypeManagementOpen}
+        onOpenChange={setIsTypeManagementOpen}
+        type="income"
+        onTypesChange={handleTypesChange}
+      />
     </Dialog>
   );
 }

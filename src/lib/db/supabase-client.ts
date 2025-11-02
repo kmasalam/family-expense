@@ -10,6 +10,13 @@ export type User = {
   updated_at: string;
 };
 
+export type CustomType = {
+  id: string;
+  user_id: string;
+  type: string;
+  category: "expense" | "income";
+  created_at: string;
+};
 export type Expense = {
   id: string;
   user_id: string;
@@ -104,6 +111,53 @@ export const db = {
     },
     async delete(id: string) {
       return supabaseAdmin.from("incomes").delete().eq("id", id);
+    },
+  },
+  customTypes: {
+    async create(type: Omit<CustomType, "id" | "created_at">) {
+      return supabaseAdmin
+        .from("custom_types")
+        .insert([type])
+        .select()
+        .single();
+    },
+
+    async findByUserAndCategory(
+      userId: string,
+      category: "expense" | "income"
+    ) {
+      return supabaseAdmin
+        .from("custom_types")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("category", category)
+        .order("type");
+    },
+
+    async update(id: string, updates: Partial<CustomType>) {
+      return supabaseAdmin
+        .from("custom_types")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+    },
+
+    async delete(id: string) {
+      return supabaseAdmin.from("custom_types").delete().eq("id", id);
+    },
+
+    async deleteByType(
+      userId: string,
+      type: string,
+      category: "expense" | "income"
+    ) {
+      return supabaseAdmin
+        .from("custom_types")
+        .delete()
+        .eq("user_id", userId)
+        .eq("type", type)
+        .eq("category", category);
     },
   },
 };

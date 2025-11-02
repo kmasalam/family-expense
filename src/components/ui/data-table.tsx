@@ -21,6 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,12 +37,18 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey: string;
+  showTotal?: boolean;
+  totalLabel?: string;
+  amountAccessorKey?: string;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
+  showTotal = false,
+  totalLabel = "Total",
+  amountAccessorKey = "amount",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -66,6 +73,14 @@ export function DataTable<TData, TValue>({
       rowSelection,
     },
   });
+
+  // Calculate total
+  const totalAmount = showTotal
+    ? data.reduce((sum, row: any) => {
+        const amount = parseFloat(row[amountAccessorKey]) || 0;
+        return sum + amount;
+      }, 0)
+    : 0;
 
   return (
     <div>
@@ -153,6 +168,24 @@ export function DataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          {showTotal && data.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length - 1}
+                  className="text-right font-medium"
+                >
+                  {totalLabel}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  }).format(totalAmount)}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">

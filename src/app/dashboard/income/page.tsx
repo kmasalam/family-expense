@@ -92,6 +92,9 @@ export default function IncomePage() {
               columns={getIncomeColumns(fetchIncome)}
               data={income}
               searchKey="type"
+              showTotal={true}
+              totalLabel="Total Income"
+              amountAccessorKey="amount"
             />
           </CardContent>
         </Card>
